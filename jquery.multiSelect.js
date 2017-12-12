@@ -17,6 +17,7 @@ $.fn.multiSelect = function(options){
 		zIndex: 9,
 	};
 	var _options = {};
+	//可以加入拓展，参数设置，例如zindex，width，height，color，bgcolor……等UI控制
 	initCss();
 	this.each(function(){
 		var width = $(this).outerWidth();
