@@ -13,4 +13,7 @@
 
 可以通过$(name=name).val()和$(name=name).data('values')来获取对应的值。
 
+*关于option，如果option的值为空，例如：<option value="">请选择</option>，这个option是不展示的，因为取不到value值，用户选择了也没有意义。
+
+
 [演示地址](https://no2015.github.io/jquery.multiSelect.js/)
