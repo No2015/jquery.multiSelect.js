@@ -1,20 +1,28 @@
-var multiSelectCss = '<style id="multiSelectCss" type="text/css">.multi-select-box{position:relative;display:inline-block}.multi-select-div{position:absolute;z-index:9;background:#fff;border:1px solid #dedede;width:100%!important;box-sizing:border-box;max-height:150px;overflow:auto;display:none;top:100%;margin-top:-1px}.multi-select-name{padding-left:3px;box-sizing:border-box;padding-right:17px;border:1px solid #dedede;background:#fff url(https://mall.epec.com/ecmall/img/public/xl2.jpg) no-repeat right center / 17px 100%}.multi-select-option{margin:0;padding:0}.multi-select-option label{display:block;line-height: 18px;padding:4px 5px}.multi-select-option label:hover{background:#f1f2f6}.multi-select-option input{float:left;margin:4px 3px 0 0}.multi-select-option span{margin-left:22px;display:block}</style>';
+var multiSelectCss = '<style id="multiSelectCss" type="text/css">.multi-select-box{position:relative;display:inline-block}.multi-select-div{position:absolute;z-index:9;background:#fff;border:1px solid #dedede;box-sizing:border-box;max-height:200px;overflow:auto;display:none;}.multi-select-name{padding-left:3px;box-sizing:border-box;padding-right:17px;border:1px solid #dedede;background:#fff url(https://mall.epec.com/ecmall/img/public/xl2.jpg) no-repeat right center / 17px 100%}.multi-select-option{margin:0;padding:0}.multi-select-option label{display:block;line-height: 18px;padding:4px 5px}.multi-select-option label:hover{background:#f1f2f6}.multi-select-option input{float:left;margin:4px 3px 0 0}.multi-select-option span{margin-left:22px;display:block}</style>';
 function initCss(){
 	if($('#multiSelectCss')[0]){
 		return false;
 	}
 	$(document).on('click','body',function(event){
-		if(!$(event.target).closest('.multi-select-box')[0]){
-			$('.multi-select-div').slideUp(200);
+		if(!$(event.target).closest('.multi-select-box')[0] && !$(event.target).closest('.multi-select-div')[0]){
+			$('.multi-select-div').slideUp(200,function(){
+				$(this).remove();
+			});
 		}
 	});
 	$('head').append(multiSelectCss);
 }
-$.fn.multiSelect = function(){
+$.fn.multiSelect = function(options){
+	var defaultOptions = {
+		zIndex: 9,
+	};
+	var _options = {};
 	initCss();
 	this.each(function(){
 		var width = $(this).outerWidth();
 		var height = $(this).outerHeight();
+		var left = $(this).offset().left;
+		var top = $(this).offset().top;
 		$(this).hide();
 		var $parent = $(this).parent();
 		if(!$parent.hasClass('.multi-select-box')){
@@ -27,33 +35,45 @@ $.fn.multiSelect = function(){
 		}else{
 			return false;
 		}
-		var $simulation = $('<div class="multi-select-div"></div>');
-		$parent.append($simulation);
-		var options = '';
-		$(this).find('option').each(function(){
-			if($(this).attr('value')){
-				options += '<p class="multi-select-option">\n'
-						+		'<label>\n'
-						+			'<input type="checkbox" data-text="'+$(this).text()+'" value="'+$(this).attr('value')+'"><span>'+$(this).text()+'</span>\n'
-						+		'</label>\n'
-						+	'</p>';
-				
-			}
-		});
-		$simulation.append(options);			
-		$parent.find('input[type="checkbox"]').change(function(){
-			var values = [], texts = [];
-			$parent.find('input[type="checkbox"]:checked').each(function(){
-				var value = this.value;
-				var text = $(this).data('text');
-				values.push(value);
-				texts.push(text);
-			});
-			$parent.find('.multi-select-name').val(texts.toString()).attr('data-values',values.toString());
-		});
+		var _this = this;					
+		
 		$parent.find('.multi-select-name').click(function(){
-			$('.multi-select-div').hide();
-			$parent.find('.multi-select-div').slideDown(200);
+			$('.multi-select-div').remove();
+
+			var val = $(this).data('values'), arr = [], oarr = {};
+			if(!!val){
+				arr = val.split(',');
+				for(var i = 0; i < arr.length; i++){
+					oarr[arr[i]] = arr[i];
+				}
+			}
+			console.log(oarr)
+			var $simulation = $('<div class="multi-select-div" style="width:'+width+'px;left:'+left+'px;top:'+(top+height-1)+'px"></div>');
+			$('body').append($simulation);
+			var options = '';
+			$(_this).find('option').each(function(){
+				if($(this).attr('value')){
+					options += '<p class="multi-select-option">\n'
+							+		'<label>\n'
+							+			'<input type="checkbox" '+(oarr[$(this).attr('value')] == $(this).attr('value') ? 'checked' : '')+' data-text="'+$(this).text()+'" value="'+$(this).attr('value')+'"><span>'+$(this).text()+'</span>\n'
+							+		'</label>\n'
+							+	'</p>';
+					
+				}
+			});
+			$simulation.append(options);
+			$simulation.slideDown(200);
+
+			$simulation.on('change','input[type="checkbox"]',function(){
+				var values = [], texts = [];
+				$simulation.find('input[type="checkbox"]:checked').each(function(){
+					var value = this.value;
+					var text = $(this).data('text');
+					values.push(value);
+					texts.push(text);
+				});
+				$parent.find('.multi-select-name').val(texts.toString()).data('values',values.toString());
+			});
 		});
 	});
 }
